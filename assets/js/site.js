@@ -501,7 +501,7 @@
       var link = !t && !typing && e.target.closest('a, button, label, summary, [role="button"]');
       cursor.classList.toggle('is-label', !!t);
       cursor.classList.toggle('is-link', !!link);
-      cursor.classList.toggle('on-dark', !!e.target.closest('.projects, .drawer-panel, .menu-panel, .dock, .pill, .pill-round, .btn, .area-icon, .intro, .chat'));
+      cursor.classList.toggle('on-dark', !!e.target.closest('.dock, .pill, .pill-round, .btn, .area-icon, .intro'));
       cursor.classList.toggle('is-text', !!typing);
       if (t) $('span', cursor).textContent = (lang === 'en' && t.dataset.cursorEn) || t.dataset.cursor;
     });

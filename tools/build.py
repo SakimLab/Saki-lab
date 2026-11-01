@@ -142,7 +142,7 @@ def shell(page, root, title, desc, body, head=""):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
-<meta name="theme-color" content="#ffaa00">
+<meta name="theme-color" content="#ffe1b9">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <link rel="icon" href="{root}{SITE_PHOTOS[2]}">
@@ -243,8 +243,8 @@ HERO_PICS = TORCH
 YEARS = {"bicaense": 2002, "clube-ferroviario": 2010, "a-tabacaria": 2015, "social-b": 2018, "so-what": 2024}
 # the photo inside the headline: only the three bars that look best, alternating
 HEADLINE_PICS = [("a-tabacaria", "balcao"), ("so-what", "abobada-acesa"), ("social-b", "bar-violeta"),
-                 ("a-tabacaria", "fachada"), ("so-what", "telefone-vermelho"), ("social-b", "bartenders"),
-                 ("a-tabacaria", "sala-a-noite"), ("so-what", "sala-cheia"), ("social-b", "musica"),
+                 ("a-tabacaria", "fachada"), ("so-what", "telefone-vermelho"), ("social-b", "torneiras"),
+                 ("a-tabacaria", "sala-a-noite"), ("so-what", "sala-cheia"), ("social-b", "lustre"),
                  ("a-tabacaria", "ultima-luz"), ("so-what", "tunel-vermelho"), ("social-b", "balcao-rosas")]
 # a name starting "arquivo/" is a photo from that project's archive (assets/img/lugares/<project>/arquivo/)
 CONTACT_PICS = [("so-what", "arquivo/img-502"), ("so-what", "mesa-posta"), ("a-tabacaria", "espuma"), ("so-what", "telefone-vermelho")]
@@ -416,7 +416,7 @@ def build_home():
   </section>"""
 
     # PROCESS: an evening, from 18:00 to opening; the steps lie along one line and the section goes from day to night
-    times = ["10:00", "10:30", "11:30", "12:30", "13:30"]
+    times = ["10:00", "10:30", "11:00", "12:00", "13:00"]
     steps = []
     for i, ((n, d), hour) in enumerate(zip(PROCESS["steps"], times)):
         steps.append(f"""
