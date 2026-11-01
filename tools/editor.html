@@ -1,0 +1,713 @@
+<!-- Editor added to editor.html by build.py (and to the offline file made by tools/editor_local.py).
+     Edit mode: every text is editable in place, a click on a photo replaces it, "Cores" changes the main colours.
+     Texts and colours are kept in localStorage, photos in IndexedDB (this browser only).
+     "Alterações" lists the changes to copy, or downloads them as a file to send to Claude;
+     "HTML" downloads the page as it looks now. -->
+<style>
+#sk-ed{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:2147483000;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:calc(100vw - 32px);padding:8px 8px 8px 16px;border-radius:28px;background:#161616;color:#f3f0ea;font:500 13px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#sk-ed button,#sk-panel button,#sk-colors button{appearance:none;border:0;border-radius:999px;padding:10px 14px;font:600 13px/1 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer;background:#f3f0ea;color:#161616}
+#sk-ed button[aria-pressed="true"],#sk-panel .pri{background:#e2582b;color:#fff}
+#sk-ed button:focus-visible,#sk-panel button:focus-visible,#sk-colors button:focus-visible{outline:2px solid #e2582b;outline-offset:2px}
+#sk-st{margin-right:4px}
+#sk-panel{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.5);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#sk-panel[hidden],#sk-colors[hidden]{display:none}
+#sk-panel .box{background:#f3f0ea;color:#161616;border-radius:16px;padding:20px;width:min(640px,100%);max-height:calc(100% - 32px);display:flex;flex-direction:column;gap:12px}
+#sk-panel h2{margin:0;font:700 18px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif}
+#sk-panel p{margin:0}
+#sk-panel textarea{width:100%;min-height:200px;flex:1;box-sizing:border-box;padding:10px;border:1px solid #bbb;border-radius:8px;font:13px/1.4 ui-monospace,Menlo,monospace;background:#fff;color:#161616}
+#sk-panel .row{display:flex;gap:8px;flex-wrap:wrap}
+#sk-panel .ghost,#sk-colors .ghost{background:transparent;border:1px solid currentColor;color:inherit}
+#sk-colors{position:fixed;left:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:2147483000;width:min(300px,calc(100vw - 32px));box-sizing:border-box;padding:16px;border-radius:16px;background:#161616;color:#f3f0ea;font:500 13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25);display:grid;gap:10px}
+#sk-photos{position:fixed;top:calc(80px + env(safe-area-inset-top,0px));right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:2147483000;width:min(340px,calc(100vw - 32px));box-sizing:border-box;padding:16px;border-radius:16px;background:#161616;color:#f3f0ea;font:500 13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25);overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+#sk-photos[hidden]{display:none}
+#sk-photo-list{display:grid;gap:10px}
+#sk-photos .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#sk-photos h3{margin:0;font:700 15px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif}
+#sk-photos details{border-top:1px solid #333;padding-top:10px;display:grid;gap:10px}
+#sk-photos summary{cursor:pointer;font:600 13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;list-style-position:inside}
+#sk-photos summary:focus-visible{outline:2px solid #e2582b;outline-offset:2px}
+#sk-photos h4{margin:4px 0 0;font:600 11px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;text-transform:uppercase;letter-spacing:.06em;color:#a9a59d}
+#sk-photos p{margin:0;color:#c9c5bd}
+#sk-photos .ph{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start;padding-bottom:4px}
+#sk-photos .ph img{width:72px;height:54px;object-fit:cover;border-radius:6px;background:#333}
+#sk-photos .ph.sk-gone img{opacity:.3}
+.sk-del{display:none!important}
+#sk-photos .ph.sk-changed img{outline:2px solid #2b8a3e;outline-offset:1px}
+#sk-photos .ph span{display:block;overflow-wrap:anywhere;margin-bottom:6px}
+#sk-photos .ph .acts{display:flex;gap:6px;flex-wrap:wrap}
+#sk-photos button{appearance:none;border:0;border-radius:999px;padding:7px 12px;font:600 12px/1 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer;background:#f3f0ea;color:#161616}
+#sk-photos button.ghost{background:transparent;border:1px solid #f3f0ea;color:#f3f0ea}
+#sk-photos button:focus-visible{outline:2px solid #e2582b;outline-offset:2px}
+#sk-photos .add{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#sk-photos .add small{color:#a9a59d;width:100%}
+#sk-photos button:disabled{opacity:.35;cursor:default}
+#sk-photos .ph small{display:block;color:#a9a59d;margin-bottom:4px}
+#sk-arch{position:fixed;inset:0;z-index:2147483002;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55);font:500 13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif}
+#sk-arch[hidden]{display:none}
+#sk-arch .box{background:#161616;color:#f3f0ea;border-radius:16px;padding:18px;width:min(920px,100%);max-height:calc(100% - 32px);display:flex;flex-direction:column;gap:12px;box-sizing:border-box}
+#sk-arch .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#sk-arch h3{margin:0;font:700 16px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif}
+#sk-arch p{margin:0;color:#c9c5bd}
+#sk-arch .pick{display:flex;gap:8px;align-items:center}
+#sk-arch select{font:inherit;padding:6px 8px;border-radius:8px;background:#222;color:#f3f0ea;border:1px solid #444}
+#sk-arch-grid{overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;min-height:0}
+#sk-arch-grid button{appearance:none;border:2px solid transparent;border-radius:8px;padding:0;background:#222;cursor:pointer;aspect-ratio:4/3;overflow:hidden;position:relative}
+#sk-arch-grid button:hover,#sk-arch-grid button:focus-visible{border-color:#e2582b;outline:none}
+#sk-arch-grid img{width:100%;height:100%;object-fit:cover;display:block}
+#sk-arch-grid button.used::after{content:"em uso";position:absolute;left:6px;top:6px;padding:2px 6px;border-radius:999px;background:#2b8a3e;color:#fff;font:600 10px/1.4 system-ui,sans-serif}
+#sk-arch button.ghost{appearance:none;border-radius:999px;padding:7px 12px;font:600 12px/1 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer;background:transparent;border:1px solid #f3f0ea;color:#f3f0ea}
+.sk-added img{outline:2px solid #2b8a3e;outline-offset:-2px}
+#sk-colors label{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#sk-colors input{width:56px;height:32px;padding:0;border:1px solid #555;border-radius:6px;background:none;cursor:pointer}
+html.sk-editing [data-sk-key]{outline:1px dashed rgba(226,88,43,.8);outline-offset:3px;cursor:text!important;border-radius:2px}
+html.sk-editing [data-sk-key]:focus{outline:2px solid #e2582b;background:rgba(226,88,43,.08)}
+html.sk-editing [data-sk-key].sk-changed{outline-color:#2b8a3e}
+html.sk-editing img[data-sk-img]{outline:2px dashed rgba(226,88,43,.9);outline-offset:-2px;cursor:copy!important}
+html.sk-editing img[data-sk-img]:hover{filter:brightness(.8)}
+html.sk-editing img[data-sk-img].sk-changed{outline-color:#2b8a3e}
+/* the editor runs without the site's scripts: show every part of the page, still */
+.cursor,.dock,.intro,.map{display:none!important}
+.area-body{grid-template-rows:1fr!important}
+.area-body>ul{padding-bottom:32px}
+.pg-pin,.night-pin{min-height:0!important}
+.pg-track,.night-track,.track{flex-wrap:wrap;width:auto!important;transform:none!important}
+.teasers{overflow:visible}
+.sheet-body [data-reveal]{opacity:1!important;transform:none!important}
+</style>
+<div id="sk-ed" role="region" aria-label="Editor">
+  <span id="sk-st">Nenhuma alteração</span>
+  <button type="button" id="sk-toggle" aria-pressed="false">Editar</button>
+  <button type="button" id="sk-photo-btn" aria-expanded="false">Fotos</button>
+  <button type="button" id="sk-color-btn" aria-expanded="false">Cores</button>
+  <button type="button" id="sk-send">Alterações</button>
+  <button type="button" id="sk-html">HTML</button>
+</div>
+<div id="sk-photos" role="dialog" aria-label="Fotos" hidden>
+  <div class="top"><h3>Fotos</h3><button type="button" class="ghost" id="sk-photos-close">Fechar</button></div>
+  <p>Abra um projecto para ver as suas fotos. Pode trocar cada foto por outra do seu computador ou do arquivo do site, apagá-la, ou juntar fotos novas (até 20 por projecto).</p>
+  <div id="sk-photo-list"></div>
+</div>
+<div id="sk-arch" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="sk-arch-h">
+    <div class="top"><h3 id="sk-arch-h">Arquivo</h3><button type="button" class="ghost" id="sk-arch-close">Fechar</button></div>
+    <p id="sk-arch-what"></p>
+    <label class="pick">Fotos de <select id="sk-arch-slug"></select></label>
+    <div id="sk-arch-grid"></div>
+  </div>
+</div>
+<div id="sk-colors" role="dialog" aria-label="Cores" hidden>
+  <label>Fundo <input type="color" id="sk-c-paper" data-var="--paper"></label>
+  <label>Texto <input type="color" id="sk-c-ink" data-var="--ink"></label>
+  <label>Laranja <input type="color" id="sk-c-ember" data-var="--ember"></label>
+  <label>Secções escuras <input type="color" id="sk-c-dark" data-var="--dark"></label>
+  <button type="button" class="ghost" id="sk-c-reset">Repor cores</button>
+</div>
+<input type="file" id="sk-file" accept="image/*" hidden>
+<div id="sk-panel" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="sk-ph">
+    <h2 id="sk-ph">As suas alterações</h2>
+    <p id="sk-help">Para aplicar ao site: "Descarregar ficheiro" descarrega o ficheiro de alterações e, à parte, cada foto do seu computador (o navegador pode pedir autorização para várias transferências). Envie ao Claude o ficheiro e essas fotos. Se só mudou textos, também pode copiar e colar o texto.</p>
+    <textarea id="sk-out" readonly></textarea>
+    <div class="row">
+      <button type="button" class="pri" id="sk-file-dl">Descarregar ficheiro</button>
+      <button type="button" class="ghost" id="sk-copy">Copiar texto</button>
+      <button type="button" class="ghost" id="sk-close">Fechar</button>
+      <button type="button" class="ghost" id="sk-clear">Apagar todas as alterações</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var root = document.documentElement, KEY = 'sakim-edits', CKEY = 'sakim-colors';
+  function $(id) { return document.getElementById(id); }
+  var btn = $('sk-toggle'), st = $('sk-st'), panel = $('sk-panel'), out = $('sk-out'), fileIn = $('sk-file');
+  var edits = {}, photos = {}, colors = {}, editing = false, confirmClear = false, pickFor = null;
+  function readLS(k) { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } }
+  function writeLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  var notice = '', DKEY = 'sakim-deleted', deleted = {}, AKEY = 'sakim-added', added = {}, addedData = {}, MAXP = 20;
+  edits = readLS(KEY); colors = readLS(CKEY); deleted = readLS(DKEY); added = readLS(AKEY);
+  /* the photos kept in the site's archive (assets/img/lugares/<project>/arquivo/), by project */
+  var ARCHIVE = {}; try { ARCHIVE = JSON.parse(document.getElementById('sk-archive').textContent); } catch (e) {}
+  /* a photo is a picture from the computer (data:) or a file of the site ("repo:assets/…") */
+  function resolve(v) { if (v && v.indexOf('repo:') === 0) { var p = v.slice(5); return (window.SK_IMG && SK_IMG[p]) || p; } return v; }
+
+  /* photos live in IndexedDB (they are too big for localStorage); without it they last until the page closes */
+  var idb = null;
+  function idbOpen() {
+    return new Promise(function (res) {
+      try {
+        var rq = indexedDB.open('sakim-editor', 1);
+        rq.onupgradeneeded = function () { rq.result.createObjectStore('photos'); };
+        rq.onsuccess = function () { idb = rq.result; res(); };
+        rq.onerror = function () { res(); };
+      } catch (e) { res(); }
+    });
+  }
+  function idbAll() {
+    return new Promise(function (res) {
+      if (!idb) return res({});
+      var all = {}, tx = idb.transaction('photos'), cur = tx.objectStore('photos').openCursor();
+      cur.onsuccess = function () { var c = cur.result; if (c) { all[c.key] = c.value; c.continue(); } else res(all); };
+      cur.onerror = function () { res(all); };
+    });
+  }
+  function idbPut(k, v) { if (!idb) return; try { var tx = idb.transaction('photos', 'readwrite'); if (v == null) tx.objectStore('photos').delete(k); else tx.objectStore('photos').put(v, k); } catch (e) {} }
+  function idbClear() { if (!idb) return; try { idb.transaction('photos', 'readwrite').objectStore('photos').clear(); } catch (e) {} }
+
+  function status() {
+    var t = Object.keys(edits).length, p = Object.keys(photos).length, c = Object.keys(colors).length, x = Object.keys(deleted).length, parts = [];
+    var a = Object.keys(added).reduce(function (n, s) { return n + added[s].length; }, 0);
+    if (t) parts.push(t + (t === 1 ? ' texto' : ' textos'));
+    if (p) parts.push(p + (p === 1 ? ' foto' : ' fotos'));
+    if (a) parts.push(a + (a === 1 ? ' foto nova' : ' fotos novas'));
+    if (x) parts.push(x + (x === 1 ? ' foto apagada' : ' fotos apagadas'));
+    if (c) parts.push('cores');
+    st.textContent = notice + (parts.length ? 'Alterado: ' + parts.join(', ') : 'Nenhuma alteração');
+  }
+  function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ('0000000' + (h >>> 0).toString(16)).slice(-8); }
+  function lang() { return root.lang === 'en' ? 'en' : 'pt'; }
+
+  /* ---------- texts ---------- */
+  function tag(el) {
+    if (el.dataset.skKey || el.closest('#sk-ed,#sk-panel,#sk-colors,#sk-photos')) return;
+    var pt = el.getAttribute('data-pt'), en = el.getAttribute('data-en');
+    if (pt == null || en == null) return;
+    el.dataset.skOrigPt = pt; el.dataset.skOrigEn = en;
+    el.dataset.skKey = hash(pt + '\u0001' + en);
+    apply(el);
+    if (editing) el.contentEditable = 'true';
+  }
+  /* texts with one version for both languages (names, figures, times, press titles, contacts):
+     every leaf element with letters or digits outside a [data-pt] (not the press articles, which are quoted as published); the same text shares one key, so a name changes everywhere */
+  var NOT_PLAIN = '.press,.teasers,.timeline,#sk-ed,#sk-panel,#sk-colors,#sk-photos,[data-pt],.lang,.drawer-close,noscript,script,style,.intro,.map,.pg-n,.night-n,.pg-count,.teaser-read,.mikas-source,.done .mono,.cursor,.chat,.chat-log';
+  function tagPlain(el) {
+    if (el.dataset.skKey || el.children.length || el.tagName === 'I' || el.closest(NOT_PLAIN)) return;
+    var t = el.textContent.trim();
+    if (!/[0-9A-Za-zÀ-ÿ]/.test(t) || /^[A-D]$/.test(t)) return;
+    el.dataset.skPlain = '1'; el.dataset.skOrig = el.textContent;
+    el.dataset.skKey = 'p' + hash(t);
+    apply(el);
+    if (editing) el.contentEditable = 'true';
+  }
+  function apply(el) {
+    var e = edits[el.dataset.skKey]; if (!e) return;
+    if (el.dataset.skPlain) { el.classList.add('sk-changed'); if (document.activeElement !== el) el.textContent = e.text; return; }
+    el.setAttribute('data-pt', e.pt); el.setAttribute('data-en', e.en);
+    el.classList.add('sk-changed');
+    if (document.activeElement !== el) el.innerHTML = e[lang()];
+  }
+  function clean(html) {
+    return html.replace(/<span class="ch acc">([^<]*)<\/span>/g, '<span class="acc">$1</span>').replace(/<span class="ch">([^<]*)<\/span>/g, '$1')
+      .replace(/&nbsp;/g, ' ').replace(/(<br\s*\/?>\s*)+$/, '').replace(/<(\/?)b>/g, '<$1strong>').replace(/<(\/?)i>/g, '<$1em>').trim();
+  }
+  function savePlain(el) {
+    var v = el.textContent.replace(/\u00a0/g, ' ').trim(), k = el.dataset.skKey, orig = el.dataset.skOrig.trim();
+    var cur = edits[k] ? edits[k].text : orig;
+    if (v === cur) return;
+    if (v === orig) delete edits[k]; else edits[k] = { plain: true, orig: orig, text: v };
+    document.querySelectorAll('[data-sk-key="' + k + '"]').forEach(function (x) {
+      x.classList.toggle('sk-changed', !!edits[k]); if (x !== el) x.textContent = v;
+    });
+    writeLS(KEY, edits); status();
+  }
+  function save(el) {
+    if (el.dataset.skPlain) return savePlain(el);
+    var l = lang(), v = clean(el.innerHTML);
+    if (v === el.getAttribute('data-' + l)) return;
+    el.setAttribute('data-' + l, v);
+    var k = el.dataset.skKey, pt = el.getAttribute('data-pt'), en = el.getAttribute('data-en');
+    if (pt === el.dataset.skOrigPt && en === el.dataset.skOrigEn) { delete edits[k]; el.classList.remove('sk-changed'); }
+    else { edits[k] = { orig_pt: el.dataset.skOrigPt, orig_en: el.dataset.skOrigEn, pt: pt, en: en }; el.classList.add('sk-changed'); }
+    writeLS(KEY, edits); status();
+  }
+
+  /* ---------- photos: one key per picture, shared by its full size and its thumbnail ---------- */
+  function imgPath(img) {
+    var p = img.getAttribute('data-sk-src') || img.getAttribute('src') || '';
+    if (/^data:/.test(p)) return '';
+    return p.replace(/^(\.\.\/)+/, '').replace(/^.*?(assets\/)/, '$1').split('?')[0];
+  }
+  function imgKey(path) { var m = path.match(/assets\/img\/(?:lugares|mini)\/([^/]+)\/([^/]+)$/); return m ? m[1] + '/' + m[2] : path; }
+  function tagImg(img) {
+    if (img.dataset.skImg || img.dataset.skAdd || img.closest('#sk-ed,#sk-panel,#sk-colors,#sk-photos,#sk-arch')) return;
+    var path = imgPath(img); if (!path) return;
+    if (!img.getAttribute('data-sk-src')) img.setAttribute('data-sk-src', path);
+    /* the offline file keeps each photo once, in window.SK_IMG */
+    if (!img.getAttribute('src') && window.SK_IMG && SK_IMG[path]) img.src = SK_IMG[path];
+    img.dataset.skImg = imgKey(path);
+    if (photos[img.dataset.skImg]) showPhoto(img);
+    if (deleted[img.dataset.skImg]) hideBox(img, true);
+  }
+  function showPhoto(img) { img.src = resolve(photos[img.dataset.skImg]); img.removeAttribute('loading'); img.classList.add('sk-changed'); }
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader();
+      r.onerror = rej;
+      r.onload = function () {
+        var im = new Image();
+        im.onerror = function () { res(r.result); };
+        im.onload = function () {
+          var max = 2400, s = Math.min(1, max / Math.max(im.width, im.height));
+          if (s === 1 && file.size < 1.5e6) return res(r.result);
+          var c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+          c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+          res(c.toDataURL('image/jpeg', .86));
+        };
+        im.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+  fileIn.addEventListener('change', function () {
+    var f = fileIn.files[0], k = pickFor; fileIn.value = '';
+    if (!f || !k) return;
+    st.textContent = 'A carregar a foto…';
+    shrink(f).then(function (data) {
+      if (k.add) return addPhoto(k.add, data);
+      setPhoto(k, data);
+    }, function () { st.textContent = 'Não foi possível ler essa imagem'; });
+  });
+
+  function scan(r) {
+    r.querySelectorAll('[data-pt][data-en]').forEach(tag);
+    if (r.matches && r.matches('[data-pt][data-en]')) tag(r);
+    r.querySelectorAll('*').forEach(tagPlain);
+    r.querySelectorAll('img').forEach(tagImg);
+    if (r.tagName === 'IMG') tagImg(r);
+  }
+
+  /* ---------- the photo list: every photo of the page and of the project pages ---------- */
+  var pbox = $('sk-photos'), pbtn = $('sk-photo-btn'), plist = $('sk-photo-list');
+  function photoSrc(k, path) { return photos[k] ? resolve(photos[k]) : (window.SK_IMG && SK_IMG[path]) || path; }
+  function setPhoto(k, v) {
+    photos[k] = v; idbPut(k, v);
+    document.querySelectorAll('img[data-sk-img]').forEach(function (img) { if (img.dataset.skImg === k) showPhoto(img); });
+    status(); if (!pbox.hidden) listPhotos();
+  }
+  /* new photos: kept per project, shown at the end of its gallery */
+  function addedSrc(a) { return a.src.indexOf('repo:') === 0 ? resolve(a.src) : addedData[a.id]; }
+  function projectCount(slug) {
+    var t = $('place-' + slug), keys = {};
+    if (t) t.content.querySelectorAll('.gallery img').forEach(function (im) { var k = imgKey((im.getAttribute('data-sk-src') || im.getAttribute('src') || '').replace(/^(\.\.\/)+/, '')); if (!deleted[k]) keys[k] = 1; });
+    return Object.keys(keys).length + (added[slug] || []).length;
+  }
+  function addPhoto(slug, v) {
+    if (projectCount(slug) >= MAXP) { st.textContent = 'Este projecto já tem ' + MAXP + ' fotos'; return; }
+    var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6), a = { id: id, src: v };
+    if (v.indexOf('repo:') !== 0) { addedData[id] = v; idbPut('add/' + id, v); a.src = 'upload'; }
+    (added[slug] = added[slug] || []).push(a); writeLS(AKEY, added);
+    showAdded(); status(); if (!pbox.hidden) listPhotos();
+  }
+  function removeAdded(slug, id) {
+    added[slug] = (added[slug] || []).filter(function (a) { return a.id !== id; });
+    if (!added[slug].length) delete added[slug];
+    delete addedData[id]; idbPut('add/' + id, null); writeLS(AKEY, added);
+    showAdded(); status(); if (!pbox.hidden) listPhotos();
+  }
+  function addedFigure(a) {
+    var fig = document.createElement('figure'); fig.className = 'g g-m sk-added'; fig.style.setProperty('--span', '4');
+    var im = document.createElement('img'); im.className = 'photo'; im.alt = ''; im.dataset.skAdd = a.id; im.src = addedSrc(a) || '';
+    fig.appendChild(im); return fig;
+  }
+  function showAdded() {
+    if (!sheetBody) return;
+    var pc = sheetBody.querySelector('.place-content'), gal = pc && pc.querySelector('.gallery'); if (!gal) return;
+    gal.querySelectorAll('.sk-added').forEach(function (x) { x.remove(); });
+    (added[pc.getAttribute('data-place')] || []).forEach(function (a) { gal.appendChild(addedFigure(a)); });
+  }
+
+  /* the archive picker: swap a photo for, or add, one of the site's archived photos */
+  var abox = $('sk-arch'), agrid = $('sk-arch-grid'), aslug = $('sk-arch-slug'), archFor = null;
+  Object.keys(ARCHIVE).forEach(function (sl) {
+    var o = document.createElement('option'), t = $('place-' + sl), n = t && t.content.querySelector('.place-mega');
+    o.value = sl; o.textContent = (n ? n.textContent.trim() : sl) + ' (' + ARCHIVE[sl].length + ')'; aslug.appendChild(o);
+  });
+  function usedRepo() {
+    var u = {};
+    Object.keys(photos).forEach(function (k) { if (String(photos[k]).indexOf('repo:') === 0) u[photos[k].slice(5)] = 1; });
+    Object.keys(added).forEach(function (sl) { added[sl].forEach(function (a) { if (a.src.indexOf('repo:') === 0) u[a.src.slice(5)] = 1; }); });
+    return u;
+  }
+  function showArchive(sl) {
+    aslug.value = sl; agrid.innerHTML = ''; var used = usedRepo();
+    (ARCHIVE[sl] || []).forEach(function (path) {
+      var b = document.createElement('button'); b.type = 'button'; b.title = path.split('/').pop();
+      if (used[path]) b.className = 'used';
+      var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = (window.SK_IMG && SK_IMG[path]) || path;
+      b.appendChild(im);
+      b.addEventListener('click', function () {
+        abox.hidden = true;
+        if (archFor.add) addPhoto(archFor.add, 'repo:' + path); else setPhoto(archFor.k, 'repo:' + path);
+      });
+      agrid.appendChild(b);
+    });
+    if (!agrid.children.length) agrid.textContent = 'Este projecto não tem fotos no arquivo.';
+  }
+  function openArchive(what, slug, text) {
+    archFor = what; $('sk-arch-what').textContent = text;
+    showArchive(ARCHIVE[slug] ? slug : Object.keys(ARCHIVE)[0]); abox.hidden = false;
+  }
+  aslug.addEventListener('change', function () { showArchive(aslug.value); });
+  $('sk-arch-close').addEventListener('click', function () { abox.hidden = true; });
+  /* a deleted photo disappears with its frame (a gallery tile); the rest of the page stays */
+  function hideBox(img, on) { var box = img.closest('figure.g') || img; box.classList.toggle('sk-del', on); }
+  function deletePhoto(k, path, on) {
+    if (on) deleted[k] = path; else delete deleted[k];
+    writeLS(DKEY, deleted);
+    document.querySelectorAll('img[data-sk-img]').forEach(function (img) { if (img.dataset.skImg === k) hideBox(img, on); });
+    status(); listPhotos();
+  }
+  function revertPhoto(k) {
+    delete photos[k]; idbPut(k, null);
+    document.querySelectorAll('img[data-sk-img]').forEach(function (img) {
+      if (img.dataset.skImg !== k) return;
+      var path = img.getAttribute('data-sk-src');
+      img.src = (window.SK_IMG && SK_IMG[path]) || path; img.classList.remove('sk-changed');
+    });
+    status(); listPhotos();
+  }
+  /* one folder per page (home, then each project); a folder fills only when opened */
+  var openGroups = {};
+  function listPhotos() {
+    var groups = [];
+    function collect(id, title, imgs) {
+      var items = [], seen = {};
+      imgs.forEach(function (im) {
+        if (im.closest && im.closest('#sk-photos,.intro')) return;
+        var path = im.getAttribute('data-sk-src') || (im.getAttribute('src') || '').replace(/^(\.\.\/)+/, '').split('?')[0];
+        if (!path || /^data:/.test(path) || !/assets\/img\//.test(path)) return;
+        var k = imgKey(path); if (seen[k]) return; seen[k] = 1;
+        items.push({ k: k, path: path });
+      });
+      if (items.length) groups.push({ id: id, title: title, items: items });
+    }
+    collect('home', 'Página inicial', [].slice.call(document.querySelectorAll('main img')));
+    document.querySelectorAll('template[id^="place-"]').forEach(function (t) {
+      var name = t.content.querySelector('.place-mega'), slug = t.id.slice(6);
+      var shown = document.querySelector('[data-sk-orig="' + (name ? name.textContent : '').replace(/"/g, '') + '"]');
+      collect(slug, (shown ? shown.textContent : name ? name.textContent : slug).trim(), [].slice.call(t.content.querySelectorAll('img')));
+    });
+    /* the project open on screen opens its folder */
+    var onScreen = sheet && sheet.classList.contains('open') && sheetBody.querySelector('.place-content');
+    var here = onScreen && onScreen.getAttribute('data-place');
+    if (here) { openGroups = {}; openGroups[here] = true; }
+    plist.innerHTML = '';
+    groups.forEach(function (g) {
+      var d = document.createElement('details'), sm = document.createElement('summary');
+      var changed = g.items.filter(function (it) { return photos[it.k]; }).length, gone = g.items.filter(function (it) { return deleted[it.k]; }).length;
+      var total = g.id === 'home' ? g.items.length : projectCount(g.id);
+      sm.textContent = g.title + ' · ' + total + (g.id === 'home' ? '' : '/' + MAXP) + (changed ? ' · ' + changed + ' trocada' + (changed > 1 ? 's' : '') : '') + (gone ? ' · ' + gone + ' apagada' + (gone > 1 ? 's' : '') : '');
+      d.appendChild(sm); d.open = !!openGroups[g.id];
+      function fill() {
+        if (d.dataset.filled) return; d.dataset.filled = '1';
+        if (g.id !== 'home') {
+          var full = projectCount(g.id) >= MAXP, add = document.createElement('div'); add.className = 'add';
+          var a1 = document.createElement('button'); a1.type = 'button'; a1.textContent = '+ Do computador'; a1.disabled = full;
+          a1.addEventListener('click', function () { pickFor = { add: g.id }; fileIn.click(); });
+          var a2 = document.createElement('button'); a2.type = 'button'; a2.textContent = '+ Do arquivo'; a2.disabled = full;
+          a2.addEventListener('click', function () { openArchive({ add: g.id }, g.id, 'Escolha uma foto para juntar a ' + g.title + '.'); });
+          var nt = document.createElement('small'); nt.textContent = full ? 'Já tem ' + MAXP + ' fotos: apague uma para juntar outra.' : 'Juntar foto (' + projectCount(g.id) + ' de ' + MAXP + ')';
+          add.appendChild(nt); add.appendChild(a1); add.appendChild(a2); d.appendChild(add);
+        }
+        g.items.forEach(function (it) {
+          var row = document.createElement('div'); row.className = 'ph' + (photos[it.k] ? ' sk-changed' : '') + (deleted[it.k] ? ' sk-gone' : '');
+          var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = photoSrc(it.k, it.path);
+          var box = document.createElement('div'), lab = document.createElement('span');
+          lab.textContent = it.k.split('/').pop().replace(/\.jpe?g$/i, '').replace(/-/g, ' ');
+          var acts = document.createElement('div'); acts.className = 'acts';
+          if (deleted[it.k]) {
+            lab.textContent += ' — apagada';
+            var b0 = document.createElement('button'); b0.type = 'button'; b0.textContent = 'Repor';
+            b0.addEventListener('click', function () { deletePhoto(it.k, it.path, false); });
+            acts.appendChild(b0);
+            box.appendChild(lab); box.appendChild(acts); row.appendChild(im); row.appendChild(box); d.appendChild(row);
+            return;
+          }
+          var tr = document.createElement('small'); tr.textContent = 'Trocar por foto…'; box.appendChild(tr);
+          var b1 = document.createElement('button'); b1.type = 'button'; b1.textContent = 'Do computador';
+          b1.addEventListener('click', function () { pickFor = it.k; fileIn.click(); });
+          acts.appendChild(b1);
+          var b3 = document.createElement('button'); b3.type = 'button'; b3.textContent = 'Do arquivo';
+          b3.addEventListener('click', function () { openArchive({ k: it.k }, g.id === 'home' ? it.k.split('/')[0] : g.id, 'Escolha a foto que fica no lugar de "' + lab.textContent + '".'); });
+          acts.appendChild(b3);
+          var bx = document.createElement('button'); bx.type = 'button'; bx.className = 'ghost'; bx.textContent = 'Apagar';
+          bx.addEventListener('click', function () {
+            if (bx.dataset.sure) return deletePhoto(it.k, it.path, true);
+            bx.dataset.sure = '1'; bx.textContent = 'Apagar? Clique outra vez';
+          });
+          acts.appendChild(bx);
+          if (photos[it.k]) {
+            var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'ghost'; b2.textContent = 'Original';
+            b2.addEventListener('click', function () { revertPhoto(it.k); });
+            acts.appendChild(b2);
+          }
+          box.insertBefore(lab, box.firstChild); box.appendChild(acts); row.appendChild(im); row.appendChild(box); d.appendChild(row);
+        });
+        (added[g.id] || []).forEach(function (a) {
+          var row = document.createElement('div'); row.className = 'ph sk-changed';
+          var im = document.createElement('img'); im.alt = ''; im.loading = 'lazy'; im.src = addedSrc(a) || '';
+          var box = document.createElement('div'), lab = document.createElement('span');
+          lab.textContent = 'Nova — ' + (a.src.indexOf('repo:') === 0 ? 'arquivo ' + a.src.split('/').pop().replace(/\.jpe?g$/i, '') : 'do computador');
+          var acts = document.createElement('div'); acts.className = 'acts';
+          var bx = document.createElement('button'); bx.type = 'button'; bx.className = 'ghost'; bx.textContent = 'Apagar';
+          bx.addEventListener('click', function () {
+            if (bx.dataset.sure) return removeAdded(g.id, a.id);
+            bx.dataset.sure = '1'; bx.textContent = 'Apagar? Clique outra vez';
+          });
+          acts.appendChild(bx); box.appendChild(lab); box.appendChild(acts); row.appendChild(im); row.appendChild(box); d.appendChild(row);
+        });
+      }
+      d.addEventListener('toggle', function () { openGroups[g.id] = d.open; if (d.open) fill(); });
+      if (d.open) fill();
+      plist.appendChild(d);
+      if (g.id === here) setTimeout(function () { d.scrollIntoView({ block: 'start' }); }, 0);
+    });
+  }
+  pbtn.addEventListener('click', function () {
+    pbox.hidden = !pbox.hidden; pbtn.setAttribute('aria-expanded', pbox.hidden ? 'false' : 'true');
+    if (!pbox.hidden) listPhotos();
+  });
+  $('sk-photos-close').addEventListener('click', function () { pbox.hidden = true; pbtn.setAttribute('aria-expanded', 'false'); });
+
+  /* ---------- colours ---------- */
+  var cbox = $('sk-colors'), cbtn = $('sk-color-btn'), defaults = {};
+  function hex(v) {
+    v = (v || '').trim(); if (/^#[0-9a-f]{6}$/i.test(v)) return v;
+    if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(function (c) { return c + c; }).join('');
+    var m = v.match(/\d+/g); if (!m) return '#000000';
+    return '#' + m.slice(0, 3).map(function (n) { return ('0' + (+n).toString(16)).slice(-2); }).join('');
+  }
+  function applyColors() {
+    cbox.querySelectorAll('input').forEach(function (i) {
+      var v = i.dataset.var, val = colors[v] || defaults[v];
+      i.value = val;
+      if (colors[v]) { root.style.setProperty(v, colors[v]); if (v === '--dark') root.style.setProperty('--night', colors[v]); }
+      else { root.style.removeProperty(v); if (v === '--dark') root.style.removeProperty('--night'); }
+    });
+  }
+  cbox.querySelectorAll('input').forEach(function (i) {
+    i.addEventListener('input', function () {
+      if (i.value.toLowerCase() === defaults[i.dataset.var]) delete colors[i.dataset.var]; else colors[i.dataset.var] = i.value;
+      writeLS(CKEY, colors); applyColors(); status();
+    });
+  });
+  $('sk-c-reset').addEventListener('click', function () { colors = {}; writeLS(CKEY, colors); applyColors(); status(); });
+  cbtn.addEventListener('click', function () { cbox.hidden = !cbox.hidden; cbtn.setAttribute('aria-expanded', cbox.hidden ? 'false' : 'true'); });
+
+  /* ---------- edit mode ---------- */
+  function setEditing(on) {
+    editing = on; root.classList.toggle('sk-editing', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.textContent = on ? 'Terminar edição' : 'Editar';
+    document.querySelectorAll('[data-sk-key]').forEach(function (el) { if (on) el.contentEditable = 'true'; else el.removeAttribute('contenteditable'); });
+  }
+  btn.addEventListener('click', function () { setEditing(!editing); });
+
+  /* PT / EN without the site's scripts */
+  document.querySelectorAll('.lang button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var l = b.dataset.lang; root.lang = l;
+      document.querySelectorAll('[data-' + l + ']').forEach(function (el) { if (document.activeElement !== el) el.innerHTML = el.getAttribute('data-' + l); });
+      document.querySelectorAll('[data-alt-' + l + ']').forEach(function (el) { el.alt = el.getAttribute('data-alt-' + l); });
+      document.querySelectorAll('.lang button').forEach(function (x) { x.classList.toggle('on', x.dataset.lang === l); });
+    });
+  });
+
+  /* project pages open over the page, from the copies kept in <template id="place-…"> */
+  var sheet = $('sheet'), sheetBody = sheet && sheet.querySelector('.sheet-body');
+  function openPlace(slug) {
+    var t = $('place-' + slug); if (!t || !sheet) return false;
+    sheetBody.innerHTML = ''; sheetBody.appendChild(document.importNode(t.content, true));
+    var l = lang();
+    sheetBody.querySelectorAll('[data-' + l + ']').forEach(function (el) { if (!el.dataset.skKey) el.innerHTML = el.getAttribute('data-' + l); });
+    scan(sheetBody); showAdded(); sheetBody.scrollTop = 0;
+    sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+    return true;
+  }
+  function closePlace() { if (sheet) { sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); } }
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !editing) { closePlace(); panel.hidden = true; } });
+
+  /* clicks: while editing, texts take the caret and photos open the file picker; links never navigate in edit mode */
+  ['click', 'pointerdown', 'mousedown', 'touchstart'].forEach(function (t) {
+    window.addEventListener(t, function (ev) {
+      var tg = ev.target;
+      if (!tg.closest || tg.closest('#sk-ed,#sk-panel,#sk-colors,#sk-photos,#sk-arch,.lang')) return;
+      if (t === 'click' && tg.closest('.sheet .back')) { ev.preventDefault(); closePlace(); return; }
+      if (!editing) {
+        var a = t === 'click' && tg.closest('a[href]'), m = a && a.getAttribute('href').match(/(?:^|\/)lugares\/([a-z0-9-]+)\.html/);
+        if (m && openPlace(m[1])) ev.preventDefault();
+        return;
+      }
+      var el = tg.closest('[data-sk-key]'), img = tg.closest('img[data-sk-img]'), link = tg.closest('a,button');
+      /* a photo under a caption, a shade or a link still counts as clicked */
+      if (!el && !img && ev.clientX != null && document.elementsFromPoint) {
+        img = document.elementsFromPoint(ev.clientX, ev.clientY).filter(function (x) { return x.matches && x.matches('img[data-sk-img]'); })[0] || null;
+      }
+      if (img && !el) {
+        if (t === 'click') { ev.preventDefault(); pickFor = img.dataset.skImg; fileIn.click(); }
+        ev.stopPropagation(); return;
+      }
+      if (el || link) {
+        if (t === 'click') ev.preventDefault();
+        ev.stopPropagation();
+        if (el && t === 'click' && document.activeElement !== el) el.focus();
+      }
+    }, { capture: true, passive: false });
+  });
+  document.addEventListener('keydown', function (ev) {
+    var el = editing && ev.target.closest && ev.target.closest('[data-sk-key]');
+    if (!el) return;
+    ev.stopPropagation();
+    if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); el.blur(); }
+    if (ev.key === 'Escape') { if (el.dataset.skPlain) el.textContent = edits[el.dataset.skKey] ? edits[el.dataset.skKey].text : el.dataset.skOrig; else el.innerHTML = el.getAttribute('data-' + lang()); el.blur(); }
+  }, true);
+  document.addEventListener('focusout', function (ev) { var el = ev.target.closest && ev.target.closest('[data-sk-key]'); if (el && editing) save(el); }, true);
+  document.addEventListener('paste', function (ev) {
+    var el = ev.target.closest && ev.target.closest('[data-sk-key]'); if (!el) return;
+    ev.preventDefault(); document.execCommand('insertText', false, (ev.clipboardData || window.clipboardData).getData('text/plain'));
+  }, true);
+
+  /* ---------- export ---------- */
+  function plain(h) { var d = document.createElement('div'); d.innerHTML = h.replace(/<em>|<\/em>/g, '*').replace(/<strong>|<\/strong>/g, '**').replace(/<br\s*\/?>/g, ' / '); return d.textContent; }
+  function report() {
+    var lines = ['ALTERAÇÕES — SAKIM LAB', ''], n = 0;
+    Object.keys(edits).forEach(function (k) {
+      var e = edits[k];
+      if (e.plain) { n++; lines.push(n + '. [PT+EN] ANTES: ' + e.orig, '   DEPOIS: ' + e.text, ''); return; }
+      [['pt', 'PT'], ['en', 'EN']].forEach(function (p) {
+        if (e[p[0]] === e['orig_' + p[0]]) return;
+        n++;
+        lines.push(n + '. [' + p[1] + '] ANTES: ' + plain(e['orig_' + p[0]]));
+        lines.push('   DEPOIS: ' + plain(e[p[0]]), '');
+      });
+    });
+    Object.keys(photos).forEach(function (k) { n++; lines.push(n + '. [FOTO] ' + k + (String(photos[k]).indexOf('repo:') === 0 ? ' → ' + photos[k].slice(5) : ' (substituída por uma do computador — só vai no ficheiro)'), ''); });
+    Object.keys(deleted).forEach(function (k) { n++; lines.push(n + '. [FOTO APAGADA] ' + k, ''); });
+    Object.keys(added).forEach(function (sl) { added[sl].forEach(function (a) { n++; lines.push(n + '. [FOTO NOVA] ' + sl + ': ' + (a.src.indexOf('repo:') === 0 ? a.src.slice(5) : 'do computador (só vai no ficheiro)'), ''); }); });
+    Object.keys(colors).forEach(function (v) { n++; lines.push(n + '. [COR] ' + v + ': ' + defaults[v] + ' → ' + colors[v], ''); });
+    if (!n) lines.push('(nenhuma alteração)');
+    lines.push('#sakim-edits ' + JSON.stringify(Object.keys(edits).map(function (k) { return edits[k]; })));
+    return lines.join('\n');
+  }
+  function download(name, data, type) {
+    var a = document.createElement('a'), url = URL.createObjectURL(new Blob([data], { type: type }));
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  function today() { return new Date().toISOString().slice(0, 10); }
+  $('sk-send').addEventListener('click', function () {
+    if (document.activeElement && document.activeElement.dataset && document.activeElement.dataset.skKey) document.activeElement.blur();
+    out.value = report(); panel.hidden = false; confirmClear = false;
+    $('sk-clear').textContent = 'Apagar todas as alterações';
+  });
+  /* the changes file stays small: a photo from the computer is downloaded as its own file, and the changes file names it */
+  function dataBlob(v) {
+    var m = v.match(/^data:([^;,]+)(;base64)?,(.*)$/); if (!m) return null;
+    var raw = m[2] ? atob(m[3]) : decodeURIComponent(m[3]), b = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) b[i] = raw.charCodeAt(i);
+    return { blob: new Blob([b], { type: m[1] }), ext: { 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/heic': 'heic' }[m[1]] || 'jpg' };
+  }
+  $('sk-file-dl').addEventListener('click', function () {
+    var ph = {}, files = [];
+    function file(name, v) { var d = dataBlob(v); if (!d) return null; name += '.' + d.ext; files.push({ name: name, blob: d.blob }); return name; }
+    Object.keys(photos).forEach(function (k) {
+      var path = /^[^/]+\/[^/]+$/.test(k) ? 'assets/img/lugares/' + k : k, v = String(photos[k]);
+      ph[k] = v.indexOf('repo:') === 0 ? { path: path, from_repo: v.slice(5) } : { path: path, file: file('sakim-foto--' + k.replace(/\.[a-z]+$/i, '').replace(/[^a-z0-9-]+/gi, '--'), v) };
+    });
+    var ad = {};
+    Object.keys(added).forEach(function (sl) {
+      var n = 0;
+      ad[sl] = added[sl].map(function (a) { return a.src.indexOf('repo:') === 0 ? { from_repo: a.src.slice(5) } : { file: file('sakim-nova--' + sl + '--' + (++n), addedData[a.id] || '') }; });
+    });
+    var data = { kind: 'sakim-lab-edits', version: 3, date: new Date().toISOString(), texts: Object.keys(edits).map(function (k) { return edits[k]; }), photos: ph, added: ad, deleted: deleted, colors: colors };
+    download('sakim-alteracoes-' + today() + '.json', JSON.stringify(data, null, 1), 'application/json');
+    /* one file at a time: browsers may ask once to allow several downloads */
+    files.forEach(function (f, i) {
+      setTimeout(function () {
+        var a = document.createElement('a'), url = URL.createObjectURL(f.blob);
+        a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 8000);
+      }, 500 * (i + 1));
+    });
+    st.textContent = files.length ? 'A descarregar 1 ficheiro + ' + files.length + (files.length === 1 ? ' foto' : ' fotos') : 'Ficheiro descarregado';
+  });
+  $('sk-close').addEventListener('click', function () { panel.hidden = true; });
+  $('sk-copy').addEventListener('click', function () {
+    var b = this;
+    function done() { b.textContent = 'Copiado ✓'; setTimeout(function () { b.textContent = 'Copiar texto'; }, 2000); }
+    function fallback() { out.focus(); out.select(); try { if (document.execCommand('copy')) return done(); } catch (e) {} b.textContent = 'Selecionado — copie manualmente'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(out.value).then(done, fallback); else fallback();
+  });
+  $('sk-clear').addEventListener('click', function () {
+    if (!confirmClear) { confirmClear = true; this.textContent = 'Tem a certeza? Clique outra vez'; return; }
+    edits = {}; photos = {}; colors = {}; deleted = {}; added = {}; writeLS(KEY, edits); writeLS(CKEY, colors); writeLS(DKEY, deleted); writeLS(AKEY, added); idbClear();
+    setTimeout(function () { location.reload(); }, 150);
+  });
+  /* the page as it looks now, without the editor */
+  $('sk-html').addEventListener('click', function () {
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    var c = root.cloneNode(true);
+    c.classList.remove('sk-editing');
+    c.querySelectorAll('#sk-ed,#sk-panel,#sk-colors,#sk-photos,#sk-file,script').forEach(function (x) { x.remove(); });
+    c.querySelectorAll('[contenteditable]').forEach(function (x) { x.removeAttribute('contenteditable'); });
+    c.querySelectorAll('.sk-del').forEach(function (x) { x.remove(); });
+    c.querySelectorAll('.sk-changed').forEach(function (x) { x.classList.remove('sk-changed'); });
+    var sb = c.querySelector('.sheet'); if (sb) { sb.classList.remove('open'); sb.querySelector('.sheet-body').innerHTML = ''; }
+    /* every photo in the file: replaced ones, and in the offline file the ones kept in window.SK_IMG */
+    var imgs = [].slice.call(c.querySelectorAll('img'));
+    c.querySelectorAll('template').forEach(function (t) { imgs = imgs.concat([].slice.call(t.content.querySelectorAll('img'))); });
+    imgs.forEach(function (im) {
+      var path = im.getAttribute('data-sk-src') || (im.getAttribute('src') || '').replace(/^(\.\.\/)+/, '').split('?')[0];
+      var k = path && imgKey(path);
+      if (k && deleted[k]) { (im.closest('figure.g') || im).remove(); return; }
+      if (k && photos[k]) im.setAttribute('src', resolve(photos[k]));
+      else if (!im.getAttribute('src') && window.SK_IMG && SK_IMG[path]) im.setAttribute('src', SK_IMG[path]);
+    });
+    /* new photos go at the end of their project's gallery */
+    Object.keys(added).forEach(function (sl) {
+      var t = c.querySelector('template#place-' + sl), gal = t && t.content.querySelector('.gallery');
+      if (gal) added[sl].forEach(function (a) { var f = addedFigure(a); f.classList.remove('sk-added'); f.querySelector('img').removeAttribute('data-sk-add'); gal.appendChild(f); });
+    });
+    download('sakim-lab-' + today() + '.html', '<!doctype html>\n' + c.outerHTML, 'text/html');
+  });
+
+  function start() {
+    var cs = getComputedStyle(root);
+    cbox.querySelectorAll('input').forEach(function (i) { defaults[i.dataset.var] = hex(cs.getPropertyValue(i.dataset.var)).toLowerCase(); });
+    /* changes already on the site leave the list by themselves: a text whose original no longer exists
+       anywhere (page or project pages) was published or replaced, a colour equal to the site's is no change,
+       and a deleted photo that no page shows any more is gone */
+    var present = {}, shown = {}, cleaned = 0;
+    function collect(r) {
+      r.querySelectorAll('[data-pt][data-en]').forEach(function (el) {
+        if (!el.closest('#sk-ed,#sk-panel,#sk-colors,#sk-photos,#sk-arch')) present[hash(el.getAttribute('data-pt') + '\u0001' + el.getAttribute('data-en'))] = 1;
+      });
+      r.querySelectorAll('*').forEach(function (el) {
+        if (el.children.length || el.tagName === 'I' || el.closest(NOT_PLAIN)) return;
+        var t = el.textContent.trim();
+        if (/[0-9A-Za-zÀ-ÿ]/.test(t) && !/^[A-D]$/.test(t)) present['p' + hash(t)] = 1;
+      });
+      r.querySelectorAll('img').forEach(function (im) {
+        var path = (im.getAttribute('data-sk-src') || im.getAttribute('src') || '').replace(/^(\.\.\/)+/, '').split('?')[0];
+        if (path && !/^data:/.test(path)) shown[imgKey(path)] = 1;
+      });
+    }
+    collect(document);
+    document.querySelectorAll('template[id^="place-"]').forEach(function (t) { collect(t.content); });
+    Object.keys(edits).forEach(function (k) { if (!present[k]) { delete edits[k]; cleaned++; } });
+    Object.keys(colors).forEach(function (v) { if (colors[v].toLowerCase() === defaults[v]) { delete colors[v]; cleaned++; } });
+    Object.keys(deleted).forEach(function (k) { if (!shown[k]) { delete deleted[k]; cleaned++; } });
+    if (cleaned) { writeLS(KEY, edits); writeLS(CKEY, colors); writeLS(DKEY, deleted); }
+    applyColors();
+    scan(document); status();
+    if (cleaned) { notice = (cleaned === 1 ? '1 alteração já publicada saiu' : cleaned + ' alterações já publicadas saíram') + ' da lista · '; status(); }
+    idbOpen().then(idbAll).then(function (all) {
+      photos = {}; addedData = {};
+      Object.keys(all || {}).forEach(function (k) { if (k.indexOf('add/') === 0) addedData[k.slice(4)] = all[k]; else photos[k] = all[k]; });
+      document.querySelectorAll('img[data-sk-img]').forEach(function (img) { if (photos[img.dataset.skImg]) showPhoto(img); });
+      status();
+    });
+    new MutationObserver(function (ms) { ms.forEach(function (m) { m.addedNodes.forEach(function (n) { if (n.nodeType === 1) scan(n); }); }); }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>

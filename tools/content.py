@@ -12,31 +12,31 @@ NAV = [
     ("sobre", ("Sobre", "About")),
     ("contacto", ("Contacto", "Contact")),
 ]
-START = ("Iniciar Projecto", "Start Your Project")
+START = ("Iniciar a conversa do teu projecto", "Start the conversation about your project")
 
 HERO = {
     "eyebrow": ("Estúdio de Conceito de Hospitalidade", "Hospitality Concept Studio"),
-    "title": ("Onde o <em>Conceito</em><br>se Torna<br>Experiência.", "Where <em>Concept</em><br>Becomes<br>Experience."),
-    "sub": ("A Sakim Lab define restaurantes, bares e espaços de hospitalidade — do posicionamento inicial até ao dia de abertura.",
-            "Sakim Lab shapes restaurants, bars, and hospitality spaces — from initial positioning through to opening day."),
+    "title": ("Onde o <em>Conceito</em><br>se Torna<br>uma Experiência.", "Where <em>Concept</em><br>Becomes<br>an Experience."),
+    "sub": ("O Sakim Lab define novos conceitos de hospitalidade.",
+            "Sakim Lab defines new hospitality concepts."),
     "services": ("Os Nossos Serviços", "Our Services"),
 }
 
 STUDIO = {
     "label": ("O Estúdio", "The Studio"),
-    "quote": ("“Um conceito sem estratégia é teatro. Estratégia sem conceito é mecanismo.”",
-              "“A concept without strategy is theatre. Strategy without concept is machinery.”"),
+    "quote": ("“Um bom conceito é estratégia, arte, design e alma.”",
+              "“A good concept is strategy, art, design and soul.”"),
     "body": ("A Sakim Lab é um estúdio criativo de hospitalidade que trabalha com fundadores, investidores e operadores que pretendem construir espaços com significado.",
              "Sakim Lab is a creative hospitality studio working with restaurant founders, investors, and operators who want to build spaces with meaning."),
     "stats": [("11+", ("Conceitos Lançados", "Concepts Launched")),
-              ("3", ("Países", "Countries")),
+              ("2", ("Países", "Countries")),
               ("End-to-end", ("Abordagem", "Studio Approach"))],
 }
 
 SERVICES = {
     "label": ("O Que Fazemos", "What We Do"),
     "title": ("Da Primeira Ideia à <em>Noite de Abertura</em>", "From First Idea to <em>Opening Night</em>"),
-    "body": ("A Sakim Lab trabalha em quatro áreas interligadas de desenvolvimento de hospitalidade.",
+    "body": ("O Sakim Lab trabalha em quatro áreas interligadas de desenvolvimento de hospitalidade.",
              "Sakim Lab works across four interconnected areas of hospitality development."),
     "areas": [
         {
@@ -71,8 +71,8 @@ SERVICES = {
                  ("Desenvolvimento de menu enraizado na coerência do conceito, viabilidade operacional e experiência do cliente.",
                   "Menu development rooted in concept coherence, operational viability, and guest experience.")),
                 (("Estratégia de Bebidas & Vinho", "Beverage & Wine Strategy"),
-                 ("Construção de carta de vinhos, programa de bebidas e seleção de fornecedores.",
-                  "Wine list construction, beverage programme, and supplier sourcing.")),
+                 ("Construção de carta de vinhos, cocktails, programa de bebidas e seleção de fornecedores.",
+                  "Wine list construction, cocktails, beverage programme, and supplier sourcing.")),
                 (("Desenvolvimento de Bar", "Bar Concept Development"),
                  ("Desenvolvimento criativo e operacional completo de conceitos de bar — direção de cocktails, arquitetura de lista, estilo de serviço.",
                   "Full creative and operational development of bar concepts — cocktail direction, list architecture, service style.")),
@@ -89,8 +89,8 @@ SERVICES = {
             "photo": ("so-what", "abobada-acesa"),
             "items": [
                 (("Direção de Interior & Atmosfera", "Interior & Atmosphere Direction"),
-                 ("Direção criativa para o espaço físico — garantindo que o conceito está presente em cada decisão.",
-                  "Creative direction for the physical space — ensuring the concept is present in every decision.")),
+                 ("Direção criativa para o espaço físico — garantindo que o conceito está presente em cada decisão: decoração, mobiliário e iluminação.",
+                  "Creative direction for the physical space — ensuring the concept is present in every decision: decoration, furniture and lighting.")),
                 (("Seleção de Fornecedores", "Supplier Sourcing"),
                  ("Identificar os fornecedores certos cuja qualidade e valores estejam alinhados com o projeto.",
                   "Identifying the right suppliers whose quality and values align with the project.")),
@@ -205,12 +205,12 @@ PROJECT_TEXT = {
     },
     "velha-senhora": {
         "name": "O Bar da Velha Senhora",
-        "meta": ("Restaurante · Bar · Clube · Lisboa", "Restaurant · Bar · Club · Lisbon"),
+        "meta": ("Restaurante · Bar · Clube · Música ao vivo · Lisboa", "Restaurant · Bar · Club · Live music · Lisbon"),
         "desc": ("Restaurante, bar e clube com música ao vivo.", "Restaurant, bar and club with live music."),
     },
     "so-what": {
         "name": "So What",
-        "meta": ("Bar · Restaurante · Jazz Clube", "Bar · Restaurant · Jazz Club"),
+        "meta": ("Bar · Restaurante · Clube de Jazz", "Bar · Restaurant · Jazz Club"),
         "desc": ("Música ao vivo, comida, jazz.", "Live music, food, jazz."),
     },
     "sakim": {
@@ -297,9 +297,6 @@ PRESS = [
     {"outlet": "Time Out Lisboa", "year": 2019, "about": "bicaense",
      "title": "A noite que dá fama à Bica “está progressivamente a desaparecer”",
      "url": "https://www.timeout.pt/lisboa/pt/noticias/a-noite-que-da-fama-a-bica-esta-progressivamente-a-desaparecer-011019"},
-    {"outlet": "Time Out Lisboa", "year": 2019, "about": "bicaense",
-     "title": "Bicaense fecha e deixa Lisboa sem um dos seus bares de referência",
-     "url": "https://www.timeout.pt/lisboa/pt/noticias/bicaense-fecha-e-deixa-lisboa-sem-um-dos-seus-bares-de-referencia-010919"},
     {"outlet": "Visão Se7e", "year": 2018, "about": "social-b",
      "title": "Social B, em Lisboa: um bar sem conceitos",
      "url": "https://visao.pt/visaose7e/sair/2018-08-09-social-b-em-lisboa-um-bar-sem-conceitos/"},
@@ -333,11 +330,15 @@ PRESS = [
 MIKAS = {
     "label": ("Quem Está à Mesa", "Who's at the Table"),
     "text": ("Por trás da Sakim Lab está <strong>Mikas</strong>, moçambicano, há mais de trinta anos a fazer a noite de Lisboa. "
+             "Em Cacilhas, no Cais do Ginjal, o restaurante Atira-te ao Rio; na colina do Castelo, o Bar Costa do Castelo. "
              "Quando a Bica era ainda um bairro fechado sobre si mesmo, abriu lá o W.I.P. — bar, loja de roupa e cabeleireiro ao mesmo tempo. "
-             "Seguiu-se o Bicaense, e a noite da Bica nunca mais foi a mesma.",
+             "Seguiu-se o Bicaense, e a noite de Lisboa nunca mais foi a mesma. "
+             "Depois, Santa Apolónia (Clube Ferroviário), o Cais do Sodré, a Rua da Boavista e Santos, cobrindo uma vasta área de Lisboa.",
              "Behind Sakim Lab is <strong>Mikas</strong>, Mozambican, shaping Lisbon's nights for more than thirty years. "
+             "In Cacilhas, on Cais do Ginjal, the restaurant Atira-te ao Rio; on the Castle hill, Bar Costa do Castelo. "
              "When Bica was still a neighbourhood closed in on itself, he opened W.I.P. there — a bar, a clothes shop and a hairdresser all at once. "
-             "Then came Bicaense, and nights in Bica were never the same again."),
+             "Then came Bicaense, and nights in Lisbon were never the same again. "
+             "Later came Santa Apolónia (Clube Ferroviário), Cais do Sodré, Rua da Boavista and Santos, covering a wide stretch of Lisbon."),
     "source": ("Segundo o Público, 2010", "According to Público, 2010"),
     "source_url": "https://www.publico.pt/2010/06/27/culturaipsilon/noticia/mikas-uma-historia-do-cerco-de-lisboa-259846",
 }

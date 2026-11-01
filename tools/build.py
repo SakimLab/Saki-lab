@@ -142,7 +142,7 @@ def shell(page, root, title, desc, body, head=""):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
-<meta name="theme-color" content="#e9e6e0">
+<meta name="theme-color" content="#ffe1b9">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <link rel="icon" href="{root}{SITE_PHOTOS[2]}">
@@ -243,10 +243,11 @@ HERO_PICS = TORCH
 YEARS = {"bicaense": 2002, "clube-ferroviario": 2010, "a-tabacaria": 2015, "social-b": 2018, "so-what": 2024}
 # the photo inside the headline: only the three bars that look best, alternating
 HEADLINE_PICS = [("a-tabacaria", "balcao"), ("so-what", "abobada-acesa"), ("social-b", "bar-violeta"),
-                 ("a-tabacaria", "fachada"), ("so-what", "telefone-vermelho"), ("social-b", "bartenders"),
-                 ("a-tabacaria", "sala-a-noite"), ("so-what", "sala-cheia"), ("social-b", "musica"),
+                 ("a-tabacaria", "fachada"), ("so-what", "telefone-vermelho"), ("social-b", "torneiras"),
+                 ("a-tabacaria", "sala-a-noite"), ("so-what", "sala-cheia"), ("social-b", "lustre"),
                  ("a-tabacaria", "ultima-luz"), ("so-what", "tunel-vermelho"), ("social-b", "balcao-rosas")]
-CONTACT_PICS = [("sakim", "mesa-longa"), ("so-what", "mesa-posta"), ("a-tabacaria", "espuma"), ("o-terraco", "hora-azul")]
+# a name starting "arquivo/" is a photo from that project's archive (assets/img/lugares/<project>/arquivo/)
+CONTACT_PICS = [("so-what", "arquivo/img-502"), ("so-what", "mesa-posta"), ("a-tabacaria", "espuma"), ("so-what", "telefone-vermelho")]
 
 
 def hero_photos():
@@ -272,7 +273,7 @@ def hero_drift(cols=6):
 
 
 def pics_of(lst):
-    return [(photo(s, n)[0], PROJECT_TEXT[s]["name"]) for s, n in lst]
+    return [(f"assets/img/lugares/{s}/{n}.jpg" if n.startswith("arquivo/") else photo(s, n)[0], PROJECT_TEXT[s]["name"]) for s, n in lst]
 
 
 def press_section():
@@ -415,7 +416,7 @@ def build_home():
   </section>"""
 
     # PROCESS: an evening, from 18:00 to opening; the steps lie along one line and the section goes from day to night
-    times = ["18:00", "19:30", "21:00", "22:30", "00:00"]
+    times = ["10:00", "10:30", "11:00", "12:00", "13:00"]
     steps = []
     for i, ((n, d), hour) in enumerate(zip(PROCESS["steps"], times)):
         steps.append(f"""
@@ -635,10 +636,34 @@ def main():
     for p in PLACES:
         for j in range(len(p["photos"])):
             assert os.path.exists(os.path.join(ROOT, photo_path(p, j))), photo_path(p, j)
-    write("index.html", build_home())
+    home = build_home()
+    write("index.html", home)
     write("contacto.html", build_contact())
+    places = {}
     for n, slug in enumerate(PROJECT_ORDER, 1):
-        write(f"lugares/{slug}.html", build_place(slug, n))
+        places[slug] = build_place(slug, n)
+        write(f"lugares/{slug}.html", places[slug])
+    # editor.html: the home page with every text and photo editable in place (see tools/editor.html)
+    with open(os.path.join(ROOT, "tools", "editor.html"), encoding="utf-8") as f:
+        editor = f.read()
+    # it loads none of the site's scripts (no animations, no drawn cursor): a still page that is quick to edit
+    page = re.sub(r'<script src="assets/js/[^"]+" defer></script>\n', "", home)
+    page = re.sub(r"<script>try\{if\(\(!location\.hash.*?</script>\n", "", page)
+    # each project page travels inside it, so a project opens over the page without loading anything
+    templates = ""
+    for slug, html_ in places.items():
+        body = html_[html_.index('<div class="place-content"'):html_.index("\n</main>")]
+        templates += f'<template id="place-{slug}">{body.replace("../assets/", "assets/")}</template>\n'
+    # and the list of archived photos (assets/img/lugares/<project>/arquivo/), to swap or add from
+    archive = {}
+    for slug in PROJECT_ORDER:
+        folder = os.path.join(ROOT, "assets/img/lugares", slug, "arquivo")
+        if os.path.isdir(folder):
+            archive[slug] = [f"assets/img/lugares/{slug}/arquivo/{f}" for f in sorted(os.listdir(folder), key=lambda f: (len(f), f))
+                             if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    templates += f'<script type="application/json" id="sk-archive">{json.dumps(archive)}</script>\n'
+    write("editor.html", page.replace("<head>\n", '<head>\n<meta name="robots" content="noindex">\n', 1)
+          .replace("</body>", templates + editor + "</body>", 1))
     write("lugares.html", forward("index.html#projectos", "Projectos"))
     write("sobre.html", forward("index.html#sobre", "Sobre"))
     write("metodo.html", forward("index.html#processo", "Processo"))
